@@ -75,16 +75,56 @@ void Game::applyMove(vector<int> move){
 }
 
 int Game::winner(){
+    //0->Player 1 wins, 1->Player 2 wins, 2->Draw
+    int count = 0; //for checking draw condition
     //check board for pairs of 3
     for(int i = 0; i  < board.size(); i++){
         for(int j = 0; j < board.size(); j++){
             if(board[i][j] != -1){
+                 count++;
                 //vertical
-                
+                if(i >= 2 && i <= 6){
+                    //NN
+                    if(board[i][j] == board[i-1][j] && board[i][j] == board[i-2][j])
+                        return board[i][j];
+                    //SS
+                    else if(board[i][j] == board[i+1][j] && board[i][j] == board[i+2][j])
+                        return board[i][j];
+                }
+
+                //horizontal
+                if(j >=2 && j <=6){
+                    //EE
+                    if(board[i][j] == board[i][j+1] && board[i][j] == board[i][j+2])
+                        return board[i][j];
+                    //WW
+                    else if(board[i][j] == board[i][j-1] && board[i][j] == board[i][j-2])
+                        return board[i][j];
+                }
+
+                //diagonal
+                if(j >=2 && j <=6 && i >= 2 && i <= 6){
+                    //NW
+                    if(board[i][j] == board[i-1][j-1] && board[i][j] == board[i-2][j-2])
+                        return board[i][j];
+                    //SE
+                    else if(board[i][j] == board[i+1][j+1] && board[i][j] == board[i+2][j+2])
+                        return board[i][j];
+                    //NE
+                    else if(board[i][j] == board[i-1][j+1] && board[i][j] == board[i-2][j+2])
+                        return board[i][j];
+                    //SW
+                    else if(board[i][j] == board[i+1][j-1] && board[i][j] == board[i+2][j-2])
+                        return board[i][j];
+                }
             }
         }
     }
-    return -1;
+
+    if(count == 81)
+        return 2; //draw
+    else
+        return -1; //match ongoing
 }
 
 void Game::playHuman(){
@@ -100,8 +140,13 @@ void Game::playHuman(){
             cout<<"Invalid Move!!!"<<endl;
 
         if(winner() != -1){
-            cout<<"Player "<<activePlayer + 1<<" Won!!!"<<endl;
-            break;
+            if(winner() == 2){
+                cout<<"Draw!!!"<<endl;
+            }else{
+                cout<<"Player "<<!activePlayer + 1<<" Won!!!"<<endl; //use ! as applyMove switches activePlayer
+                displayBoard();
+                break;
+            }
         }
 
         displayBoard();
@@ -114,8 +159,6 @@ class Bot{
 
 int main(){
     Game g;
-    vector<int> v = g.validateMove("A1");
-    g.applyMove(v);
-    g.displayBoard();
+    g.playHuman();
     return 0;
 }
