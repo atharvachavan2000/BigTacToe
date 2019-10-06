@@ -3,7 +3,99 @@
 
 #include <iostream>
 #include <vector>
+#include <chrono>
 using namespace std;
+
+class Bot{
+    vector<vector<int>> botBoard;
+    int botActivePlayer;
+public:
+    void setBoard(vector<vector<int>> b, int a);
+    int evaluate();
+    int alphaBeta(int depth, bool isMax, int alpha, int beta);
+    string findMove();
+};
+
+void Bot::setBoard(vector<vector<int>> b, int a){
+    botBoard = b;
+    botActivePlayer = a;
+}
+
+int Bot::evaluate(){
+    return int(rand());
+}
+
+int Bot::alphaBeta(int depth, bool isMax, int alpha, int beta){
+    int value = evaluate();
+    if(value == 1000 || value == -1000 || depth == 5) return value;
+
+    if(isMax){
+        int best = -1000;
+        for(int i = 0; i  < botBoard.size(); i++){
+            for(int j = 0; j < botBoard.size(); j++){
+                if(botBoard[i][j] == -1){
+                    //make the move
+                    botBoard[i][j] == botActivePlayer;
+                    //find max value
+                    best = max(best, alphaBeta(depth+1, !isMax, alpha, beta));
+                    alpha = max(alpha, best);
+                    //undo move
+                    botBoard[i][j] == -1;
+                    //alpha-beta pruning
+                    if(beta <= alpha)
+                        goto lab1; //break out of all loops
+                }
+            }
+        }
+        lab1:return best;
+    }
+
+    else{
+        int best = 1000;
+        for(int i = 0; i  < botBoard.size(); i++){
+            for(int j = 0; j < botBoard.size(); j++){
+                if(botBoard[i][j] == -1){
+                    //make the move
+                    botBoard[i][j] == botActivePlayer;
+                    //find max value
+                    best = min(best, alphaBeta(depth+1, !isMax, alpha, beta));
+                    beta = min(beta, best);
+                    //undo move
+                    botBoard[i][j] == -1;
+                    //alpha-beta pruning
+                    if(beta <= alpha)
+                        goto lab2; //break out of all loops
+                }
+            }
+        }
+        lab2:return best;
+    }
+}
+
+string Bot::findMove(){
+    int bestVal = -1000;
+    string bestMove;
+    for(int i = 0; i  < botBoard.size(); i++){
+        for(int j = 0; j < botBoard.size(); j++){
+            if(botBoard[i][j] == -1){
+                //make the move
+                botBoard[i][j] == botActivePlayer;
+                //find max value
+                int moveVal = alphaBeta(0, false, -1000, 1000);
+                //undo move
+                botBoard[i][j] == -1;
+                //update best move
+                if(moveVal > bestVal){
+                    bestVal = moveVal;
+                    bestMove += char(i + 65);
+                    bestMove += char(j + 49);
+                }                   
+            }
+        }
+    }
+    cout<<bestMove<<endl;
+    return bestMove;
+}
 
 class Game{
     vector<vector<int>> board;
@@ -153,12 +245,106 @@ void Game::playHuman(){
     }
 }
 
-class Bot{
+void Game::playComp(){
+    Bot b;
+    string move;
+    displayBoard();
+    while(1){
+        if(activePlayer == 1){
+            b.setBoard(board, activePlayer);
+            cout<<"Bot's Move : "<<endl;
 
-};
+            auto start = chrono::high_resolution_clock::now();
+            move = b.findMove();
+            auto stop = chrono::high_resolution_clock::now();
+		    auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+		    cout << "Time taken: " << duration.count() << "ms" << endl;
+
+            vector<int> m2 = validateMove(move);
+            applyMove(m2);
+        }else{
+
+        cout<<"Player "<<activePlayer + 1<<"'s Turn : "<<endl;
+        cin>>move;
+        vector<int> m = validateMove(move);
+        if(!m.empty())
+            applyMove(m);
+        else
+            cout<<"Invalid Move!!!"<<endl;
+
+        }
+
+        if(winner() != -1){
+            if(winner() == 2){
+                cout<<"Draw!!!"<<endl;
+            }else{
+                cout<<"Player "<<!activePlayer + 1<<" Won!!!"<<endl; //use ! as applyMove switches activePlayer
+                displayBoard();
+                break;
+            }
+        }
+
+        displayBoard();
+    }
+}
+
+void Game::botMatch(){
+    Bot b1, b2;
+    string move;
+    displayBoard();
+    while(1){
+        b1.setBoard(board, activePlayer);
+        cout<<"Bot 1's Move : "<<endl;
+
+        auto start = chrono::high_resolution_clock::now();
+        move = b1.findMove();
+        auto stop = chrono::high_resolution_clock::now();
+		auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+		cout << "Time taken: " << duration.count() << "ms" << endl;
+
+        vector<int> m2 = validateMove(move);
+        applyMove(m2);
+
+        if(winner() != -1){
+            if(winner() == 2){
+                cout<<"Draw!!!"<<endl;
+            }else{
+                cout<<"Player "<<!activePlayer + 1<<" Won!!!"<<endl; //use ! as applyMove switches activePlayer
+                displayBoard();
+                break;
+            }
+        }
+
+        displayBoard();
+        
+        b2.setBoard(board, activePlayer);
+        cout<<"Bot 2's Move : "<<endl;
+
+        start = chrono::high_resolution_clock::now();
+        move = b2.findMove();
+        stop = chrono::high_resolution_clock::now();
+		duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+		cout << "Time taken: " << duration.count() << "ms" << endl;
+
+        vector<int> m1 = validateMove(move);
+        applyMove(m1);
+
+        if(winner() != -1){
+            if(winner() == 2){
+                cout<<"Draw!!!"<<endl;
+            }else{
+                cout<<"Player "<<!activePlayer + 1<<" Won!!!"<<endl; //use ! as applyMove switches activePlayer
+                displayBoard();
+                break;
+            }
+        }
+
+        displayBoard();
+    }
+}
 
 int main(){
     Game g;
-    g.playHuman();
+    g.botMatch();
     return 0;
 }
