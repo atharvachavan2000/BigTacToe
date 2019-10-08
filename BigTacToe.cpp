@@ -344,6 +344,7 @@ void Game::botMatch(){
 }
 
 int main(){
+	cout<<"Welcome to Big Tac Toe, a 9 * 9 tic tac toe game! Do you have what it takes to master it?"
     Game g;
     g.botMatch();
     return 0;
